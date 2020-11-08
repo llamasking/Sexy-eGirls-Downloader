@@ -7,13 +7,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Package Application
-      uses: JackMcKew/pyinstaller-action-windows@main
-      with:
-        path: .
+      - uses: actions/checkout@v2
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: Sexy-eGirls-Downloader-${{ github.run_number }}
-        path: dist/windows
+      - name: Package Application
+        uses: JackMcKew/pyinstaller-action-windows@main
+        with:
+          path: .
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        id: upload-artifact
+        with:
+          name: Sexy-eGirls-Downloader-${{ github.run_number }}
+          path: dist/windows
