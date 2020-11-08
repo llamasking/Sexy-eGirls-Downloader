@@ -8,12 +8,10 @@ from pathlib import Path
 import multiprocessing
 
 # Configuration
-dlsync = True
-dlthreads = 4
 dlpath = "downloads/"
 
 # Vars of the Gods
-g_imgs = g_vids = 0
+g_count = [ 0 , 0 ]
 g_downloads = []
 
 # Download function
@@ -32,6 +30,7 @@ def download(info):
                 for data in dl.iter_content(chunk_size=4096):
                     current += len(data)
                     f.write(data)
+                    # Progress bar
                     progress = current / length * 100
                     bar = "#" * int(progress / 2) + " " * int((100 - progress) / 2)
                     sys.stdout.write("\r      [%s] | %s/%s" % (bar, current, length))
@@ -63,7 +62,6 @@ for albumURL in urls:
     # Check that album query worked.
     if albumReq.status_code != 200:
         # The 404 page on Sexy-Egirls actually responds with status code 200 so I don't think this'll ever fire.
-        err_regex = re.findall(r"https:\/\/www\.sexy-egirls\.com\/albums\/(.*)", albumURL)
         print("Error! Album request responded with status code " + str(albumReq.status_code))
         continue
 
@@ -88,17 +86,17 @@ for albumURL in urls:
     for i in api['files']:
         if i['type'] == "photo":
             imgs += 1
-            g_imgs += 1
+            g_count[0] += 1
         else:
             vids += 1
-            g_vids += 1
+            g_count[1] += 1
     print("Success! Discovered " + str(imgs) + " images and " + str(vids) + " videos.")
 
     # Add album names and api response to lists
     g_downloads.append([albumURL.replace("https://www.sexy-egirls.com/albums/", ""), api['files']])
 
 # Done querying API. Start downloading.
-print("\n>>> Done querying API. Total: " + str(g_imgs) + " images and " + str(g_vids) + " videos.")
+print("\n>>> Done querying API. Total: " + str(g_count[0]) + " images and " + str(g_count[1]) + " videos.")
 
 # Loop through each album
 for i in range(0, len(g_downloads)):
@@ -111,10 +109,7 @@ for i in range(0, len(g_downloads)):
     dl_array = []
     for file in g_downloads[i][1]:
         # Filename is the same as on the CDN
-        if file["type"] == "photo":
-            filename = file["src"].replace("https://cdn1.sexy-egirls.com/cdn/girls/user-submissions", "")
-        else:
-            filename = file["src"].replace("https://cdn1.sexy-egirls.com/cdn/girls/videos", "")
+        filename = re.findall(r"https://cdn1.sexy-egirls.com/cdn/girls/.*/(.*)", file["src"], re.MULTILINE)[0]
 
         # File is "download/<album>/<filename>"
         filename = dlpath + g_downloads[i][0] + filename
@@ -122,10 +117,6 @@ for i in range(0, len(g_downloads)):
         # Add to array
         dl_array.append([filename, file["src"]])
 
-    # Download files
-    if dlsync:
-        # Download one at a time
-        for i in dl_array:
-            download(i)
-    #else:
-        # Download the files in parallel
+    # Download one at a time
+    for i in dl_array:
+        download(i)
