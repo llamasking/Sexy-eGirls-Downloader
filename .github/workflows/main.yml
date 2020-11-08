@@ -24,7 +24,7 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    if: ${{ contains(github.event.commits[0][message], [Release])}}
+    if: "!contains(github.event.commits[0].message, '[Release]')"
     needs: [build]
     steps:
       - name: Download a Build Artifact
@@ -40,7 +40,7 @@ jobs:
         with:
           tag_name: ${{ github.run_number }}
           release_name: Release Build ${{ github.run_number }}
-          body: ${{ github.event.commits[0][message] }}
+          body: ${{ github.event.commits[0].message }}
           draft: true
           prerelease: false
 
