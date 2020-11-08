@@ -11,9 +11,9 @@ jobs:
     - name: Package Application
       uses: JackMcKew/pyinstaller-action-windows@main
       with:
-        path: .
+        path: ""
 
     - uses: actions/upload-artifact@v2
       with:
-        name: Sexy-eGirls-Downloader.exe
-        path: ./dist/windows
+        name: Sexy-eGirls-Downloader-${{ github.run_number }}
+        path: dist/windows
