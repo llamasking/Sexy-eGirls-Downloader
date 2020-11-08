@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
 # Import things that will be needed.
 import re
+import sys
 import json
 import requests
 from time import time
@@ -9,7 +11,7 @@ import multiprocessing
 # Configuration
 dlsync = True
 dlthreads = 4
-dlpath = "downloads/"
+dlpath = "downloads2/"
 
 # Vars of the Gods
 g_imgs = g_vids = 0
@@ -18,9 +20,21 @@ g_downloads = []
 # Download function
 def download(info):
     print("    - Downloading: " + info[0])
-    dl = requests.get(info[1], headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101 Firefox/68.0"}, timeout=30)
+
+    dl = requests.get(info[1], headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101 Firefox/68.0"}, timeout=30, stream=True)
+    length = dl.headers.get("content-length")
+
     if dl.status_code == 200:
-        open(info[0], "wb").write(dl.content)
+        with open(info[0], "wb") as f:
+            if length is None:
+                f.write(dl.content)
+            else:
+                current = 0
+                for data in dl.iter_content(chunk_size=4096):
+                    current += len(data)
+                    f.write(data)
+                    sys.stdout.write("\r[ %s/%s ]" % (current, length))
+                    sys.stdout.flush()
     else:
         print("      - ERROR! Status Code: " + dl.status_code)
 
