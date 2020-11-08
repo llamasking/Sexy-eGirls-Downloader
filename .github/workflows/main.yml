@@ -23,7 +23,7 @@ jobs:
         uses: actions/upload-artifact@v2
         id: upload-artifact
         with:
-          name: Sexy-eGirls-Downloader-${{ github.run_number }}.zip
+          name: Sexy-eGirls-Downloader-${{ github.run_number }}
           path: dist/windows/Sexy-eGirls-Downloader-${{ github.run_number }}.zip
 
   release:
@@ -32,14 +32,17 @@ jobs:
     if: contains(github.event.commits[0].message, '[Release]')
     needs: [build]
     steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
+          tag_name: b${{ github.run_number }}
+          release_name: Build ${{ github.run_number }}
           body: ${{ github.event.commits[0].message }}
           draft: false
           prerelease: false
@@ -51,6 +54,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/windows/Sexy-eGirls-Downloader-${{ github.run_number }}.zip
+          asset_path: Sexy-eGirls-Downloader-${{ github.run_number }}.zip
           asset_name: Sexy-eGirls-Downloader-${{ github.run_number }}.zip
           asset_content_type: application/zip
