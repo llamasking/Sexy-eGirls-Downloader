@@ -14,24 +14,24 @@ jobs:
         with:
           path: .
 
+      - name: Compress files
+        run: |
+          cd dist/windows
+          zip -r9 Sexy-eGirls-Downloader-${{ github.run_number }}.zip *
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         id: upload-artifact
         with:
-          name: Sexy-eGirls-Downloader-${{ github.run_number }}
-          path: dist/windows
+          name: Sexy-eGirls-Downloader-${{ github.run_number }}.zip
+          path: dist/windows/Sexy-eGirls-Downloader-${{ github.run_number }}.zip
 
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    if: "contains(github.event.commits[0].message, '[Release]')"
+    if: contains(github.event.commits[0].message, '[Release]')
     needs: [build]
     steps:
-      - name: Download a Build Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: Sexy-eGirls-Downloader-${{ github.run_number }}
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -39,9 +39,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.run_number }}
-          release_name: Release Build ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
           body: ${{ github.event.commits[0].message }}
-          draft: true
+          draft: false
           prerelease: false
 
       - name: Upload Release Asset
@@ -51,6 +51,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Sexy-eGirls-Downloader-${{ github.run_number }}.zip
+          asset_path: dist/windows/Sexy-eGirls-Downloader-${{ github.run_number }}.zip
           asset_name: Sexy-eGirls-Downloader-${{ github.run_number }}.zip
           asset_content_type: application/zip
