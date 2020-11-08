@@ -4,14 +4,13 @@ import re
 import sys
 import json
 import requests
-from time import time
 from pathlib import Path
 import multiprocessing
 
 # Configuration
 dlsync = True
 dlthreads = 4
-dlpath = "downloads2/"
+dlpath = "downloads/"
 
 # Vars of the Gods
 g_imgs = g_vids = 0
@@ -19,10 +18,10 @@ g_downloads = []
 
 # Download function
 def download(info):
-    print("    - Downloading: " + info[0])
+    print("\r    - Downloading: " + info[0])
 
     dl = requests.get(info[1], headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101 Firefox/68.0"}, timeout=30, stream=True)
-    length = dl.headers.get("content-length")
+    length = int(dl.headers.get("content-length"))
 
     if dl.status_code == 200:
         with open(info[0], "wb") as f:
@@ -33,7 +32,9 @@ def download(info):
                 for data in dl.iter_content(chunk_size=4096):
                     current += len(data)
                     f.write(data)
-                    sys.stdout.write("\r[ %s/%s ]" % (current, length))
+                    progress = current / length * 100
+                    bar = "#" * int(progress / 2) + " " * int((100 - progress) / 2)
+                    sys.stdout.write("\r      [%s] | %s/%s" % (bar, current, length))
                     sys.stdout.flush()
     else:
         print("      - ERROR! Status Code: " + dl.status_code)
