@@ -4,7 +4,12 @@ import json
 import requests
 from time import time
 from pathlib import Path
-from multiprocessing.pool import ThreadPool
+import multiprocessing
+
+# Configuration
+dlsync = True
+dlthreads = 4
+dlpath = "downloads/"
 
 # Vars of the Gods
 g_imgs = g_vids = 0
@@ -14,20 +19,22 @@ g_downloads = []
 def download(info):
     print("    - Downloading: " + info[0])
     dl = requests.get(info[1], headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101 Firefox/68.0"}, timeout=30)
-    open(info[0], "wb").write(dl.content)
+    if dl.status_code == 200:
+        open(info[0], "wb").write(dl.content)
+    else:
+        print("      - ERROR! Status Code: " + dl.status_code)
 
 # Create download path if it doesn't exist.
-Path("downloads").mkdir(parents=True, exist_ok=True)
+Path(dlpath).mkdir(parents=True, exist_ok=True)
 
 # Input album URLs.
 urls = []
-cont = True
-while cont:
+while True:
     _input = input("Input album URL or leave blank to continue: ")
     if len(_input) != 0:
         urls.append(_input)
     else:
-        cont = False
+        break
 
 # Just have a little break
 print()
@@ -71,7 +78,6 @@ for albumURL in urls:
             vids += 1
             g_vids += 1
     print("Success! Discovered " + str(imgs) + " images and " + str(vids) + " videos.")
-    del imgs, vids
 
     # Add album names and api response to lists
     g_downloads.append([albumURL.replace("https://www.sexy-egirls.com/albums/", ""), api['files']])
@@ -82,7 +88,7 @@ print("\n>>> Done querying API. Total: " + str(g_imgs) + " images and " + str(g_
 # Loop through each album
 for i in range(0, len(g_downloads)):
     # Create album folder
-    Path("downloads/" + g_downloads[i][0]).mkdir(parents=True, exist_ok=True)
+    Path(dlpath + g_downloads[i][0]).mkdir(parents=True, exist_ok=True)
 
     print("\n>>> Downloading album: " + g_downloads[i][0])
 
@@ -96,14 +102,15 @@ for i in range(0, len(g_downloads)):
             filename = file["src"].replace("https://cdn1.sexy-egirls.com/cdn/girls/videos", "")
 
         # File is "download/<album>/<filename>"
-        filename = "downloads/" + g_downloads[i][0] + filename
+        filename = dlpath + g_downloads[i][0] + filename
 
         # Add to array
         dl_array.append([filename, file["src"]])
 
-    # Download one at a time because
-    for i in dl_array:
-        download(i)
-
-    # Download the files in parallel
-    #ThreadPool(4).imap(download, dl_array)
+    # Download files
+    if dlsync:
+        # Download one at a time
+        for i in dl_array:
+            download(i)
+    #else:
+        # Download the files in parallel
