@@ -1,0 +1,27 @@
+name: PR Build
+
+on: [ pull_request ]
+
+jobs:
+  build:
+    name: Build exe
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Package Application
+        uses: JackMcKew/pyinstaller-action-windows@main
+        with:
+          path: .
+
+      - name: List Files
+        run: |
+          find dist/windows
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        id: upload-artifact
+        with:
+          name: Sexy-eGirls-Downloader-${{ github.run_number }}
+          path: dist/windows

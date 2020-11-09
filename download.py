@@ -21,6 +21,10 @@ def download(info):
     dl = requests.get(info[1], headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101 Firefox/68.0"}, timeout=30, stream=True)
     length = int(dl.headers.get("content-length"))
 
+    # Skip existing files
+    if Path(info[0]).is_file() and Path(info[0]).stat().st_size == length:
+        return
+
     if dl.status_code == 200:
         with open(info[0], "wb") as f:
             if length is None:
@@ -112,7 +116,7 @@ for i in range(0, len(g_downloads)):
         filename = re.findall(r"https://cdn1.sexy-egirls.com/cdn/girls/.*/(.*)", file["src"], re.MULTILINE)[0]
 
         # File is "download/<album>/<filename>"
-        filename = dlpath + g_downloads[i][0] + filename
+        filename = dlpath + g_downloads[i][0] + "/" + filename
 
         # Add to array
         dl_array.append([filename, file["src"]])

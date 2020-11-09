@@ -1,0 +1,72 @@
+name: Push Build
+
+on: [ push ]
+
+jobs:
+  build:
+    name: Build exe
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Package Application
+        uses: JackMcKew/pyinstaller-action-windows@main
+        with:
+          path: .
+
+      - name: List Files
+        run: |
+          find dist/windows
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        id: upload-artifact
+        with:
+          name: Sexy-eGirls-Downloader-${{ github.run_number }}
+          path: dist/windows/Sexy-eGirls-Downloader
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: contains(github.event.commits[0].message, '[Release]')
+    needs: [build]
+    steps:
+      - name: Download Artifact
+        id: download
+        uses: actions/download-artifact@v2
+
+      - name: List Files
+        run: |
+          find ${{ steps.download.outputs.download-path }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: b${{ github.run_number }}
+          release_name: Build ${{ github.run_number }}
+          body: |
+            For Windows users who do not have Python installed.
+
+            ${{ github.event.commits[0].message }}
+          draft: false
+          prerelease: false
+
+      - name: Compress files
+        run: |
+          cd ${{ steps.download.outputs.download-path }}/Sexy-eGirls-Downloader-${{ github.run_number }}
+          zip -r9 ../Sexy-eGirls-Downloader-${{ github.run_number }}.zip *
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.download.outputs.download-path }}/Sexy-eGirls-Downloader-${{ github.run_number }}.zip
+          asset_name: Sexy-eGirls-Downloader-${{ github.run_number }}.zip
+          asset_content_type: application/zip

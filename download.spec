@@ -34,4 +34,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='download')
+               name='Sexy-eGirls-Downloader')
