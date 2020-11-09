@@ -5,7 +5,6 @@ import sys
 import json
 import requests
 from pathlib import Path
-import multiprocessing
 
 # Configuration
 dlpath = "downloads/"
@@ -70,7 +69,7 @@ for albumURL in urls:
         continue
 
     # Check that API url is in album response.
-    apiURL = re.findall(r"https:\/\/www\.sexy-egirls\.com/api/v2/data\.php\?action=album-files.*token=[a-zA-Z0-9]*", albumReq.text, re.MULTILINE)
+    apiURL = re.findall(r"https://www\.sexy-egirls\.com/api/v2/data\.php\?action=album-files.*token=[a-zA-Z0-9]*", albumReq.text, re.MULTILINE)
     if len(apiURL) != 1:
          print("Error! Album link does not contain API url. Maybe you entered a bad url?")
          continue
@@ -113,7 +112,7 @@ for i in range(0, len(g_downloads)):
     dl_array = []
     for file in g_downloads[i][1]:
         # Filename is the same as on the CDN
-        filename = re.findall(r"https://cdn1.sexy-egirls.com/cdn/girls/.*/(.*)", file["src"], re.MULTILINE)[0]
+        filename = re.findall(r"https://cdn.\.sexy-egirls\.com/cdn/girls/.*/(.*)", file["src"], re.MULTILINE)[0]
 
         # File is "download/<album>/<filename>"
         filename = dlpath + g_downloads[i][0] + "/" + filename
